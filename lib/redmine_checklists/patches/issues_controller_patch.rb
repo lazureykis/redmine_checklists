@@ -26,7 +26,6 @@ module RedmineChecklists
         base.class_eval do
           unloadable # Send unloadable so it will not be unloaded in development
 
-          alias_method_chain :build_new_issue_from_params, :checklist
           before_filter :save_before_state, :only => [:update]
         end
 
@@ -35,7 +34,7 @@ module RedmineChecklists
 
       module InstanceMethods
 
-        def build_new_issue_from_params_with_checklist
+        def build_new_issue_from_params
           if params[:copy_from] && params[:id].blank? && params[:issue].blank?
             params[:issue] = {:checklists_attributes => {}}
             begin
@@ -50,7 +49,7 @@ module RedmineChecklists
               return
             end
           end
-          build_new_issue_from_params_without_checklist
+          super
         end
 
         def save_before_state
@@ -65,5 +64,5 @@ end
 
 
 unless IssuesController.included_modules.include?(RedmineChecklists::Patches::IssuesControllerPatch)
-  IssuesController.send(:include, RedmineChecklists::Patches::IssuesControllerPatch)
+  IssuesController.prepend RedmineChecklists::Patches::IssuesControllerPatch
 end
